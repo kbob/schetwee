@@ -1,5 +1,10 @@
 (library (s3.env)
-  (export push-env env-type env-value env-set-value! initial-environment)
+  (export push-env
+          extend-env
+          env-type
+          env-value
+          env-set-value!
+          initial-environment)
   (import (rnrs)
           (rnrs mutable-pairs))
 
@@ -11,7 +16,7 @@
 
   (define (define-globals)
     (define-global 'eq? eq?)
-    ; Add more...
+    ; XXX Add more...
     )
 
   (define (initial-environment)
@@ -26,22 +31,32 @@
      [(name type value env)
       (cons (list name type value) env)]))
 
-    (define (env-type name env)
-      (cond
-       [(null? name) (error "undefined" name)]
-       [(eqv? name (caar env)) (cadar env)]
-       [else (env-value name (cdr env))]))
+  (define (extend-env names values env)
+    (cond
+     [(or (null? names) (null? values))
+      (unless (null? values)
+              (error 'extend-env "too many values" values))
+      (unless (null? names)
+              (error 'extend-env "too few values" names))
+      env]
+     [else
+      (extend-env (cdr names)
+                  (cdr values)
+                  (push-env (car names) (car values) env))]))
 
-    (define (env-value name env)
-      (cond
-       [(null? name) (error "undefined" name)]
-       [(eqv? name (caar env)) (caddar env)]
-       [else (env-value name (cdr env))]))
+  (define (lookup name env caller)
+    (cond
+     [(null? env) (error caller "undefined" name)]
+     [(eq? (caar env) name) (car env)]
+     [else (lookup name (cdr env) caller)]))
 
-    (define (env-set-value! name new-value env)
-      (cond
-       [(null? name) (error "undefined" name)]
-       [(eqv? name (caar env)) (set-car! (cddar env) new-value)]
-       [else (env-value name (cdr env))]))
-      
+  (define (env-type name env)
+    (cadr (lookup name env 'env-type)))
+
+  (define (env-value name env)
+    (caddr (lookup name env 'env-type)))
+
+  (define (env-set-value! name new-value env)
+    (set-car! (cddr (lookup name env 'env-set-value!)) new-value))
+
 )
