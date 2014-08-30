@@ -15,18 +15,16 @@ Implement this much.
     - initial (global) environment
     - linked list of (name, type, value)
 
-  - eval.  Eval is simply
+  - `eval`.  Eval decomposes into `compile` and `run`.
   
-        (define (eval exp env)
-          (run (compile exp env)))
-
-  - compile and run.  Cmpile is a no-op, and run is a simple
-    S-expression interpreter that implements a few forms.
+  - `compile` and `run`.  Initially, `compile` does very little, and
+    run is a simple S-expression interpreter that implements a few
+    special forms.
   
   - some primitive procedures.  Just import them from the host Scheme.
 
-If I complete that much, I can run "core scheme" -- a full environment
-for a very limited subset of the language.
+If I complete that much, I can run "core scheme" -- a very limited
+subset of the language.
 
 
 # Phase 2
