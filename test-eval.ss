@@ -55,6 +55,8 @@
   (test-eqv #f   (eval '(eq? 1 2) ei))
   (test-eqv #t   (eval '(eq? 3 3) ei))
 
+  ;; procedures
+
   (test-runs (eval '(lambda () 3) e0))
   (test-eqv 3 (eval '((lambda () 3)) e0))
   (test-eqv #t (eval '((lambda (x) (eq? x 4)) 4) ei))
