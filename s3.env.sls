@@ -34,10 +34,12 @@
   (define (extend-env names values env)
     (cond
      [(or (null? names) (null? values))
-      (unless (null? values)
-              (error 'extend-env "too many values" values))
-      (unless (null? names)
-              (error 'extend-env "too few values" names))
+      (unless (and (null? values) (null? names))
+              (raise
+               (condition
+                (make-assertion-violation)
+                (make-who-condition 'extend-env)
+                (make-message-condition "incorrect number of arguments"))))
       env]
      [else
       (extend-env (cdr names)
@@ -46,7 +48,11 @@
 
   (define (lookup name env caller)
     (cond
-     [(null? env) (error caller "undefined" name)]
+     [(null? env) (raise (condition
+                          (make-undefined-violation)
+                          (make-who-condition caller)
+                          (make-message-condition "undefined")
+                          (make-irritants-condition (list name))))]
      [(eq? (caar env) name) (car env)]
      [else (lookup name (cdr env) caller)]))
 

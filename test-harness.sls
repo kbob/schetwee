@@ -1,17 +1,15 @@
 (library (test-harness)
   (export print
-          test-runs
+          test-no-error
+          test-error
+          test-error-type
+          test-error-message
           test-equal
           test-eqv
           test-eq
-          test-error
-          test-error-message
           summarize-tests)
   (import (rnrs))
 
-  ;; XXX have test catch exceptions, print them, and count a failure.
-  ;;     (How do you print an exception?)
-  ;; XXX refactor test-eq* to use common definition.
   ;; XXX allow definition of test suites and subsuites.
   ;;
   ;;   (test-suite my-module
@@ -34,6 +32,19 @@
         (display l)
         (newline)])))
 
+  (define (condition-primary-type c)
+    (let ([components (simple-conditions c)])
+      (if (null? components)
+          (record-type-name (record-rtd c))
+          (record-type-name (record-rtd (car components))))))
+
+  (define (print-condition c)
+    (define (print-simple-condition c)
+      (print "      " c))
+    (print "    Condition" (condition-primary-type c))
+    (for-each print-simple-condition (simple-conditions c))
+    (print))
+
   (define pass-count
     (let ([*pass-count* 0])
       (case-lambda
@@ -52,75 +63,94 @@
   (define (test-failed)
     (fail-count 'inc))
 
-  (define-syntax test-runs
+  (define (apply-if-applicable f . args)
+    (cond
+     [(procedure? f) (apply f args)]
+     [else f]))
+
+  (define no-expectation (cons '() '()))
+
+  (define (print-failure exp verb actual expected)
+    (let ([pact (if (condition? actual)
+                    (condition-primary-type actual)
+                    actual)])
+      (if (eq? expected no-expectation)
+          (print "FAIL" exp verb pact)
+          (print "FAIL" exp verb pact "but expected" expected))))
+
+  (define-syntax general-test
+    (syntax-rules ()
+      [(_ exp error-filter result-filter expected)
+       (call/cc
+        (lambda (k)
+          (with-exception-handler
+           (lambda (cond)
+             (if (apply-if-applicable error-filter cond)
+                 (test-passed)
+                 (begin
+                   (print-failure 'exp "raised" cond expected)
+                   (print-condition cond)
+                   (test-failed)))
+             (k #f))
+           (lambda ()
+             (let ([actual exp])
+             (if (apply-if-applicable result-filter actual)
+                   (test-passed)
+                   (begin
+                     (print-failure 'exp "=>" actual expected)
+                     (test-failed))))))))]))
+
+  (define-syntax test-no-error
     (syntax-rules ()
       [(_ exp)
-       (begin
-         exp
-         (test-passed))]))
-
-  (define-syntax test-equal
-    (syntax-rules ()
-      [(_ expected exp)
-       (let ([actual exp])
-         (if (equal? expected actual)
-             (test-passed)
-             (begin
-               (print "FAIL" 'exp "=>" actual "; expected" expected)
-               (test-failed))))]))
-
-  (define-syntax test-eqv
-    (syntax-rules ()
-      [(_ expected exp)
-       (let ([actual exp])
-         (if (eqv? expected actual)
-             (test-passed)
-             (begin
-               (print "FAIL" 'exp "=>" actual "; expected" expected)
-               (test-failed))))]))
-
-  (define-syntax test-eq
-    (syntax-rules ()
-      [(_ expected exp)
-       (let ([actual exp])
-         (if (eq? expected actual)
-             (test-passed)
-             (begin
-               (print "FAIL" 'exp "=>" actual "; expected" expected)
-               (test-failed))))]))
+       (general-test exp #f #t no-expectation)]))
 
   (define-syntax test-error
     (syntax-rules ()
       [(_ exp)
-       (call/cc
-        (lambda (k)
-          (with-exception-handler
-           (lambda (exc)
-             (test-passed)
-             (k #f))
-           (lambda ()
-             (let ([actual exp])
-               (print "FAIL" 'exp "=>" actual "; expected error")
-               (test-failed))))))]))
+       (general-test exp #t #f no-expectation)]))
+
+  (define-syntax test-equal
+    (syntax-rules ()
+      [(_ expected exp)
+       (general-test exp
+                     #f
+                     (lambda (actual) (equal? actual expected))
+                     expected)]))
+                     
+  (define-syntax test-eqv
+    (syntax-rules ()
+      [(_ expected exp)
+       (general-test exp
+                     #f
+                     (lambda (actual) (eqv? actual expected))
+                     expected)]))
+                     
+  (define-syntax test-eq
+    (syntax-rules ()
+      [(_ expected exp)
+       (general-test exp
+                     #f
+                     (lambda (actual) (eq? actual expected))
+                     expected)]))
+                     
+  (define-syntax test-error-type
+    (syntax-rules ()
+      [(_ cond-type exp)
+       (general-test exp
+                     (lambda (cond)
+                       (eq? (condition-primary-type cond) cond-type))
+                     #f
+                     cond-type)]))
 
   (define-syntax test-error-message
     (syntax-rules ()
-      [(_ msg exp)
-       (call/cc
-        (lambda (k)
-          (with-exception-handler
-           (lambda (exc)
-             (let ([actual-msg (condition-message exc)])
-               (if (equal? msg actual-msg)
-                   (test-passed)
-                   (begin
-                     (print "FAIL" 'exp "raised" actual-msg "; expected" msg)
-                     (test-failed))))
-             (k #f))
-           (lambda ()
-             (let ([actual exp])
-               (print "FAIL" exp "=>" actual "; expected error")
-               (test-failed))))))]))
+      [(_ cond-msg exp)
+       (general-test exp
+                     (lambda (cond)
+                       (string=? (condition-message cond) cond-msg))
+                     #f
+                     cond-msg)]))
 
   (define (summarize-tests)
     (print (pass-count) "passed")

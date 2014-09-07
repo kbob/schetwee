@@ -13,7 +13,10 @@
               (evaluate (car exp*) env)
               (evaluate-sequence (cdr exp*) env))
             (evaluate (car exp*) env))
-        (error 'eval "empty begin" exp*)))
+        (raise (condition (make-syntax-violation '(begin) #f)
+                          (make-who-condition 'begin)
+                          (make-message-condition "empty begin")
+                          (make-irritants-condition exp*)))))
 
   (define (evaluate-list exps env)
     (if (pair? exps)
@@ -27,8 +30,12 @@
 
   (define (invoke fn args)
     (if (procedure? fn)
+        ;; XXX we lose control here.
         (apply fn args)
-        (error 'eval "not a procedure" fn)))
+        (raise (condition (make-assertion-violation)
+                          (make-who-condition 'apply)
+                          (make-message-condition "not a procedure")
+                          (make-irritants-condition (list fn))))))
 
   (define (evaluate exp env)
     (if (pair? exp)
@@ -51,7 +58,9 @@
         (cond
          [(symbol? exp) (env-value exp env)]
          [(self-evaluating? exp) exp]
-         [else (error 'eval "can't evaluate" exp)])))
+         [else (raise (condition (make-syntax-violation exp #f)
+                                 (make-who-condition 'eval)
+                                 (make-message-condition "can't evaluate")))])))
 
   (define (compile exp env)
     ;; Nothing here yet.
@@ -59,6 +68,5 @@
                                 
   (define (eval exp env)
     (evaluate (compile exp env) env))
-
 
 )
