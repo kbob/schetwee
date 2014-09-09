@@ -30,7 +30,6 @@
 
   (define (invoke fn args)
     (if (procedure? fn)
-        ;; XXX we lose control here.
         (apply fn args)
         (raise (condition (make-assertion-violation)
                           (make-who-condition 'apply)
