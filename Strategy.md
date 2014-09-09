@@ -5,6 +5,8 @@ How to get from nothing to a useful Scheme implementation?
 Last time (schetoo), I started with C.  This time, I'm going to start
 with another working Scheme.
 
+**Status:** Phase 1 complete.  I think.
+
 
 # Phase 1
 

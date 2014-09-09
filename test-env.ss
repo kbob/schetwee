@@ -4,8 +4,6 @@
         (s3.init)
         (test-harness))
 
-(test-eq (initial-environment) (initial-environment))
-
 (let* ([e0 (initial-environment)]
        [e1 (push-env 'n1 'v1 e0)]
        [e2 (push-env 'n2 't1 'v2 e1)]
