@@ -1,6 +1,7 @@
 #!/usr/bin/env scheme-script
 (import (rnrs)
         (s3.env)
+        (s3.init)
         (test-harness))
 
 (test-eq (initial-environment) (initial-environment))

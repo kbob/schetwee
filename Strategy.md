@@ -54,6 +54,8 @@ single file.
 
   - library system
   
+  - write all those built-ins.  619 procedures and 43 syntaces.
+
 If I complete that much, I will have a full Scheme implementation
 running atop the host Scheme implementation.
 

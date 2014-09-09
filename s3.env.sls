@@ -3,26 +3,9 @@
           extend-env
           env-type
           env-value
-          env-set-value!
-          initial-environment)
+          env-set-value!)
   (import (rnrs)
           (rnrs mutable-pairs))
-
-  (define *global-env* '())
-
-  (define (define-global name value)
-    (set! *global-env*
-          (push-env name 'global value *global-env*)))
-
-  (define (define-globals)
-    (define-global 'eq? eq?)
-    ; XXX Add more...
-    )
-
-  (define (initial-environment)
-    (if (null? *global-env*)
-        (define-globals))
-    *global-env*)
 
   (define push-env
     (case-lambda
@@ -65,4 +48,4 @@
   (define (env-set-value! name new-value env)
     (set-car! (cddr (lookup name env 'env-set-value!)) new-value))
 
-)
+) ; end library

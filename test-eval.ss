@@ -2,6 +2,7 @@
 (import (rnrs)
         (s3.eval)
         (s3.env)
+        (s3.init)
         (test-harness))
 
 (let* ([e0  '()]
