@@ -89,6 +89,7 @@
   string->number                            procedure
   not                                       procedure
   boolean?                                  procedure
+  boolean=?                                 procedure
   pair?                                     procedure
   cons                                      procedure
   car                                       procedure
@@ -372,7 +373,7 @@
   condition?                                procedure
   condition-predicate                       procedure
   condition-accessor                        procedure
-  define-condition-type                     procedure
+  define-condition-type                     syntax
   &message                                  condition-type
   make-message-condition                    procedure
   message-condition?                        procedure
@@ -390,7 +391,7 @@
   make-violation                            procedure
   violation?                                procedure
   &assertion                                condition-type
-  make-assertion-violation?                 procedure
+  make-assertion-violation                  procedure
   assertion-violation?                      procedure
   &irritants                                condition-type
   make-irritants-condition                  procedure
@@ -406,10 +407,10 @@
   &implementation-restriction               condition-type
   make-implementation-restriction-violation procedure
   &lexical                                  condition-type
-  make-lexical-violation?                   procedure
+  make-lexical-violation                    procedure
   lexical-violation?                        procedure
   &syntax                                   condition-type
-  make-syntax-violation?                    procedure
+  make-syntax-violation                     procedure
   syntax-violation?                         procedure
   syntax-violation-form                     procedure
   syntax-violation-subform                  procedure
@@ -452,8 +453,8 @@
   make-i/o-port-error                       procedure
   i/o-port-error?                           procedure
   i/o-error-port                            procedure
-  file-options                              procedure
-  buffer-mode                               procedure
+  file-options                              syntax
+  buffer-mode                               syntax
   buffer-mode?                              procedure
   latin-1-codec                             procedure
   utf-8-codec                               procedure
@@ -667,8 +668,8 @@
   flexpt                                    procedure
   &no-infinities                            condition-type
   make-no-infinities-violation              procedure
-  no-infinities-violation?                  condition-type
-  &no-nans                                  procedure
+  no-infinities-violation?                  procedure
+  &no-nans                                  condition-type
   make-no-nans-violation                    procedure
   no-nans-violation?                        procedure
   fixnum->flonum                            procedure
